@@ -1,0 +1,297 @@
+.receipt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.receipt-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.receipt-content {
+  padding: 32px 24px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Header */
+.receipt-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.store-name {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #1f2937;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.store-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+}
+
+.receipt-divider {
+  border-top: 2px dashed #d1d5db;
+  margin: 16px 0;
+}
+
+/* Info Section */
+.receipt-info {
+  margin-bottom: 24px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.info-label {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.info-value {
+  color: #1f2937;
+  font-weight: 500;
+}
+
+/* Items Table */
+.receipt-items {
+  margin-bottom: 24px;
+}
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.receipt-table thead th {
+  text-align: left;
+  padding-bottom: 8px;
+  color: #6b7280;
+  font-weight: 600;
+  border-bottom: 2px solid #d1d5db;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.receipt-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.receipt-table tbody td {
+  padding: 12px 4px;
+  color: #1f2937;
+}
+
+.item-name-col {
+  width: 40%;
+}
+
+.item-qty-col,
+.item-price-col {
+  width: 20%;
+  text-align: center;
+}
+
+.item-total-col {
+  width: 20%;
+  text-align: right;
+}
+
+.item-name {
+  font-weight: 500;
+}
+
+.item-qty,
+.item-price {
+  text-align: center;
+}
+
+.item-total {
+  text-align: right;
+  font-weight: 600;
+}
+
+/* Total Section */
+.receipt-total-section {
+  margin-bottom: 24px;
+}
+
+.receipt-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  font-size: 20px;
+}
+
+.total-label {
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: 1px;
+}
+
+.total-value {
+  font-weight: 700;
+  color: #3b82f6;
+  font-size: 24px;
+}
+
+/* Footer */
+.receipt-footer {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.footer-text {
+  font-size: 16px;
+  color: #1f2937;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.footer-date {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Action Buttons */
+.receipt-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-print,
+.btn-close {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-print {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-print:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-close {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-close:hover {
+  background: #e5e7eb;
+}
+
+/* Print Styles */
+@media print {
+  .receipt-overlay {
+    position: static;
+    background: white;
+    padding: 0;
+  }
+
+  .receipt-modal {
+    max-width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+    max-height: none;
+  }
+
+  .receipt-content {
+    padding: 20px;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .receipt-divider {
+    border-color: #000;
+  }
+
+  .store-name {
+    color: #000;
+  }
+
+  .total-value {
+    color: #000;
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .receipt-modal {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .receipt-content {
+    padding: 24px 16px;
+  }
+
+  .receipt-table {
+    font-size: 12px;
+  }
+
+  .receipt-total {
+    font-size: 18px;
+  }
+
+  .total-value {
+    font-size: 20px;
+  }
+}

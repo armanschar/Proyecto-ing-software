@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
+import AuditHistory from './AuditHistory';
+import { ensurePlaceholderExists } from '../utils/initializeData';
 import './DashboardContable.css';
 
 const DashboardContable = ({ user, onLogout }) => {
+  const [activeView, setActiveView] = useState('statistics');
   const [products, setProducts] = useState([]);
   const [sales, setSales] = useState([]);
 
   // Cargar datos del localStorage
   useEffect(() => {
+    ensurePlaceholderExists();
     const savedProducts = localStorage.getItem('colmado_products');
     const savedSales = localStorage.getItem('colmado_sales');
     
@@ -25,11 +29,9 @@ const DashboardContable = ({ user, onLogout }) => {
     
     // Costos totales de productos vendidos
     const totalCosts = sales.reduce((sum, sale) => {
-      const product = products.find(p => p.id === sale.productId);
-      if (product) {
-        return sum + (product.costo * sale.quantity);
-      }
-      return sum;
+      // Usar el costo almacenado en la venta, o buscar en productos como fallback
+      const cost = sale.productCost || (products.find(p => p.id === sale.productId)?.costo || 0);
+      return sum + (cost * sale.quantity);
     }, 0);
     
     // Ganancia bruta
@@ -77,12 +79,11 @@ const DashboardContable = ({ user, onLogout }) => {
           cost: 0,
         };
       }
-      const product = products.find(p => p.id === sale.productId);
+      // Usar el costo almacenado en la venta, o buscar en productos como fallback
+      const cost = sale.productCost || (products.find(p => p.id === sale.productId)?.costo || 0);
       productSales[sale.productId].quantity += sale.quantity;
       productSales[sale.productId].revenue += sale.total;
-      if (product) {
-        productSales[sale.productId].cost += product.costo * sale.quantity;
-      }
+      productSales[sale.productId].cost += cost * sale.quantity;
     });
     
     const topProducts = Object.values(productSales)
@@ -147,13 +148,29 @@ const DashboardContable = ({ user, onLogout }) => {
 
         <nav className="sidebar-menu">
           <div className="menu-title">PANEL CONTABLE</div>
-          <div className="menu-item active">
+          <button
+            className={`menu-item ${activeView === 'statistics' ? 'active' : ''}`}
+            onClick={() => setActiveView('statistics')}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="12" y1="1" x2="12" y2="23"></line>
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
             <span>Estadísticas</span>
-          </div>
+          </button>
+          <button
+            className={`menu-item ${activeView === 'audit' ? 'active' : ''}`}
+            onClick={() => setActiveView('audit')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>Historial de Auditoría</span>
+          </button>
         </nav>
 
         <div className="sidebar-footer">
@@ -188,7 +205,9 @@ const DashboardContable = ({ user, onLogout }) => {
         </header>
 
         <div className="content-area">
-          <h2 className="view-title">Análisis Financiero y Estadísticas</h2>
+          {activeView === 'statistics' && (
+            <>
+              <h2 className="view-title">Análisis Financiero y Estadísticas</h2>
 
           {/* Main Stats Cards */}
           <div className="stats-grid-main">
@@ -406,6 +425,12 @@ const DashboardContable = ({ user, onLogout }) => {
               </div>
             </div>
           </div>
+            </>
+          )}
+
+          {activeView === 'audit' && (
+            <AuditHistory />
+          )}
         </div>
       </main>
     </div>

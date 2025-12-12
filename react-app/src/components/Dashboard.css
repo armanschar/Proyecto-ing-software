@@ -95,6 +95,7 @@
   cursor: pointer;
   transition: all 0.3s;
   text-align: left;
+  position: relative;
 }
 
 .menu-item:hover {
@@ -110,6 +111,28 @@
 
 .menu-item svg {
   flex-shrink: 0;
+}
+
+.menu-badge {
+  margin-left: auto;
+  background: #dc2626;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 20px;
+  text-align: center;
+  animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .sidebar-footer {
@@ -224,6 +247,75 @@
 /* Dashboard View */
 .dashboard-view {
   max-width: 1400px;
+}
+
+/* Alert Banner */
+.alert-banner {
+  background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+  border-left: 4px solid #f59e0b;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+.alert-banner-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.alert-banner-content {
+  flex: 1;
+}
+
+.alert-banner-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 4px;
+}
+
+.alert-banner-message {
+  font-size: 14px;
+  color: #78350f;
+}
+
+.alert-critical {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.alert-warning {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.alert-banner-action {
+  padding: 10px 20px;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.alert-banner-action:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(217, 119, 6, 0.3);
 }
 
 .stats-grid {

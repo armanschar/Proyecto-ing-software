@@ -16,7 +16,9 @@ const ProductForm = ({ product, onSave, onCancel }) => {
     estado: 'Activo',
     utilidad: '',
     stock: '0',
+    stockMinimo: '10',
     imagen: '',
+    fechaVencimiento: '',
   });
 
   useEffect(() => {
@@ -33,7 +35,9 @@ const ProductForm = ({ product, onSave, onCancel }) => {
         estado: product.estado || 'Activo',
         utilidad: product.utilidad || '',
         stock: product.stock || '0',
+        stockMinimo: product.stockMinimo || '10',
         imagen: product.imagen || '',
+        fechaVencimiento: product.fechaVencimiento || '',
       });
     }
   }, [product]);
@@ -87,6 +91,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
       costo: parseFloat(formData.costo) || 0,
       precioVenta: parseFloat(formData.precioVenta) || 0,
       stock: parseInt(formData.stock) || 0,
+      stockMinimo: parseInt(formData.stockMinimo) || 10,
       utilidad: parseFloat(formData.utilidad) || 0,
     };
 
@@ -175,7 +180,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                     value={formData.codigo}
                     onChange={handleChange}
                     required
-                    placeholder="Ej: 312312312"
+                    placeholder="312312312"
                   />
                 </div>
 
@@ -188,7 +193,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                     value={formData.nombre}
                     onChange={handleChange}
                     required
-                    placeholder="Ej: MONITOR"
+                    placeholder="MONITOR"
                   />
                 </div>
 
@@ -212,42 +217,36 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                     name="fabricante"
                     value={formData.fabricante}
                     onChange={handleChange}
-                    placeholder="Ej: AITEG"
+                    placeholder="AITEG"
                   />
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="costo">Costo</label>
-                  <div className="input-with-prefix">
-                    <span className="input-prefix">RD$</span>
-                    <input
-                      type="number"
-                      id="costo"
-                      name="costo"
-                      value={formData.costo}
-                      onChange={handleChange}
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    id="costo"
+                    name="costo"
+                    value={formData.costo}
+                    onChange={handleChange}
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                  />
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="precioVenta">Precio de venta</label>
-                  <div className="input-with-prefix">
-                    <span className="input-prefix">RD$</span>
-                    <input
-                      type="number"
-                      id="precioVenta"
-                      name="precioVenta"
-                      value={formData.precioVenta}
-                      onChange={handleChange}
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    id="precioVenta"
+                    name="precioVenta"
+                    value={formData.precioVenta}
+                    onChange={handleChange}
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                  />
                 </div>
 
                 <div className="form-group">
@@ -258,7 +257,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                     name="modelo"
                     value={formData.modelo}
                     onChange={handleChange}
-                    placeholder="Ej: 23321-SM"
+                    placeholder="23321-SM"
                   />
                 </div>
 
@@ -270,7 +269,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                     name="presentacion"
                     value={formData.presentacion}
                     onChange={handleChange}
-                    placeholder="Ej: CAJA"
+                    placeholder="CAJA"
                   />
                 </div>
 
@@ -289,41 +288,55 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                 <div className="form-group">
                   <label htmlFor="utilidad">Utilidad</label>
-                  <div className="input-with-prefix">
-                    <span className="input-prefix">%</span>
-                    <input
-                      type="number"
-                      id="utilidad"
-                      name="utilidad"
-                      value={formData.utilidad}
-                      onChange={handleChange}
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      readOnly
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    id="utilidad"
+                    name="utilidad"
+                    value={formData.utilidad}
+                    onChange={handleChange}
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    readOnly
+                  />
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="stock">Stock</label>
-                  <div className="input-with-icon">
-                    <input
-                      type="number"
-                      id="stock"
-                      name="stock"
-                      value={formData.stock}
-                      onChange={handleChange}
-                      min="0"
-                      placeholder="0"
-                    />
-                    <svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="7" height="7"></rect>
-                      <rect x="14" y="3" width="7" height="7"></rect>
-                      <rect x="14" y="14" width="7" height="7"></rect>
-                      <rect x="3" y="14" width="7" height="7"></rect>
-                    </svg>
-                  </div>
+                  <input
+                    type="number"
+                    id="stock"
+                    name="stock"
+                    value={formData.stock}
+                    onChange={handleChange}
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="stockMinimo">Nivel Mínimo de Stock</label>
+                  <input
+                    type="number"
+                    id="stockMinimo"
+                    name="stockMinimo"
+                    value={formData.stockMinimo}
+                    onChange={handleChange}
+                    min="10"
+                    placeholder="10"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="fechaVencimiento">Fecha de Vencimiento</label>
+                  <input
+                    type="date"
+                    id="fechaVencimiento"
+                    name="fechaVencimiento"
+                    value={formData.fechaVencimiento}
+                    onChange={handleChange}
+                  />
+                  <small className="help-text">Opcional - para productos perecederos</small>
                 </div>
               </div>
 

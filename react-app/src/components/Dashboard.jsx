@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import ProductList from './ProductList';
 import ProductForm from './ProductForm';
 import Sales from './Sales';
+import LowStockAlerts from './LowStockAlerts';
+import InventoryManagement from './InventoryManagement';
+import SupplierManagement from './SupplierManagement';
+import SupplierHistory from './SupplierHistory';
+import { logProductCreate, logProductUpdate, logProductStatusChange } from '../utils/auditLog';
+import { ensurePlaceholderExists } from '../utils/initializeData';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout }) => {
@@ -11,6 +17,7 @@ const Dashboard = ({ user, onLogout }) => {
 
   // Cargar productos del localStorage al montar
   useEffect(() => {
+    ensurePlaceholderExists();
     const savedProducts = localStorage.getItem('colmado_products');
     if (savedProducts) {
       setProducts(JSON.parse(savedProducts));
@@ -19,6 +26,9 @@ const Dashboard = ({ user, onLogout }) => {
 
   // Guardar productos en localStorage cuando cambien
   useEffect(() => {
+    if (products.length > 0) {
+      ensurePlaceholderExists();
+    }
     localStorage.setItem('colmado_products', JSON.stringify(products));
   }, [products]);
 
@@ -29,10 +39,25 @@ const Dashboard = ({ user, onLogout }) => {
       fechaCreacion: new Date().toISOString(),
     };
     setProducts([...products, newProduct]);
+    
+    // Log audit trail
+    logProductCreate(
+      newProduct.id,
+      newProduct.nombre,
+      newProduct.codigo,
+      newProduct.stock || 0,
+      user?.email || 'Dueño'
+    );
+    
     setActiveView('products');
   };
 
   const handleEditProduct = (product) => {
+    // Prevent editing placeholder product
+    if (product.id === 'placeholder_product') {
+      alert('No se puede editar el producto de ejemplo');
+      return;
+    }
     setEditingProduct(product);
     setActiveView('add-product');
   };
@@ -43,14 +68,46 @@ const Dashboard = ({ user, onLogout }) => {
         p.id === updatedProduct.id ? updatedProduct : p
       )
     );
+    
+    // Log audit trail
+    logProductUpdate(
+      updatedProduct.id,
+      updatedProduct.nombre,
+      updatedProduct.codigo,
+      user?.email || 'Dueño',
+      'Información del producto actualizada'
+    );
+    
     setEditingProduct(null);
     setActiveView('products');
   };
 
-  const handleDeleteProduct = (productId) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-      setProducts(products.filter((p) => p.id !== productId));
+  const handleToggleProductStatus = (productId) => {
+    // Prevent toggling placeholder product
+    if (productId === 'placeholder_product') {
+      alert('No se puede cambiar el estado del producto de ejemplo');
+      return;
     }
+    
+    setProducts(
+      products.map((p) => {
+        if (p.id === productId) {
+          const newStatus = p.estado === 'Activo' ? 'Inactivo' : 'Activo';
+          
+          // Log audit trail
+          logProductStatusChange(
+            p.id,
+            p.nombre,
+            p.codigo,
+            newStatus,
+            user?.email || 'Dueño'
+          );
+          
+          return { ...p, estado: newStatus };
+        }
+        return p;
+      })
+    );
   };
 
   const handleCancelEdit = () => {
@@ -72,10 +129,36 @@ const Dashboard = ({ user, onLogout }) => {
     );
   };
 
+  const handleStockUpdate = (productId, quantityChange) => {
+    setProducts(
+      products.map((p) => {
+        if (p.id === productId) {
+          return {
+            ...p,
+            stock: Math.max(0, (p.stock || 0) + quantityChange),
+          };
+        }
+        return p;
+      })
+    );
+  };
+
   // Calcular estadísticas
   const totalProducts = products.length;
   const totalValue = products.reduce((sum, p) => sum + (p.costo * p.stock), 0);
   const totalSales = products.reduce((sum, p) => sum + (p.precioVenta * (p.stock || 0)), 0);
+  
+  // Calcular alertas de stock bajo
+  const lowStockProducts = products.filter(p => {
+    if (p.estado !== 'Activo') return false;
+    const minStock = p.stockMinimo || 0;
+    return p.stock <= minStock;
+  });
+  const criticalStockProducts = lowStockProducts.filter(p => p.stock === 0);
+  const warningStockProducts = lowStockProducts.filter(p => {
+    const minStock = p.stockMinimo || 0;
+    return p.stock > 0 && p.stock <= minStock / 2;
+  });
 
   return (
     <div className="dashboard-container">
@@ -141,6 +224,53 @@ const Dashboard = ({ user, onLogout }) => {
             </svg>
             <span>Ventas</span>
           </button>
+          <button
+            className={`menu-item ${activeView === 'inventory' ? 'active' : ''}`}
+            onClick={() => setActiveView('inventory')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            <span>Gestión de Inventario</span>
+          </button>
+          <button
+            className={`menu-item ${activeView === 'alerts' ? 'active' : ''}`}
+            onClick={() => setActiveView('alerts')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>Alertas de Stock</span>
+            {lowStockProducts.length > 0 && (
+              <span className="menu-badge">{lowStockProducts.length}</span>
+            )}
+          </button>
+          <button
+            className={`menu-item ${activeView === 'suppliers' ? 'active' : ''}`}
+            onClick={() => setActiveView('suppliers')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Proveedores</span>
+          </button>
+          <button
+            className={`menu-item ${activeView === 'supplier-history' ? 'active' : ''}`}
+            onClick={() => setActiveView('supplier-history')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 3v18h18"></path>
+              <path d="M18 17V9"></path>
+              <path d="M13 17V5"></path>
+              <path d="M8 17v-3"></path>
+            </svg>
+            <span>Historial Proveedores</span>
+          </button>
         </nav>
 
         <div className="sidebar-footer">
@@ -180,6 +310,37 @@ const Dashboard = ({ user, onLogout }) => {
           {activeView === 'dashboard' && (
             <div className="dashboard-view">
               <h2 className="view-title">Panel de Control</h2>
+              
+              {/* Low Stock Alert Banner */}
+              {lowStockProducts.length > 0 && (
+                <div className="alert-banner">
+                  <div className="alert-banner-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                  </div>
+                  <div className="alert-banner-content">
+                    <div className="alert-banner-title">Alerta de Stock Bajo</div>
+                    <div className="alert-banner-message">
+                      Tienes {lowStockProducts.length} producto{lowStockProducts.length !== 1 ? 's' : ''} con stock bajo
+                      {criticalStockProducts.length > 0 && (
+                        <span className="alert-critical"> ({criticalStockProducts.length} sin stock)</span>
+                      )}
+                      {warningStockProducts.length > 0 && (
+                        <span className="alert-warning"> ({warningStockProducts.length} crítico{warningStockProducts.length !== 1 ? 's' : ''})</span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    className="alert-banner-action"
+                    onClick={() => setActiveView('alerts')}
+                  >
+                    Ver Alertas
+                  </button>
+                </div>
+              )}
               
               {/* Stats Cards */}
               <div className="stats-grid">
@@ -286,7 +447,7 @@ const Dashboard = ({ user, onLogout }) => {
             <ProductList
               products={products}
               onEdit={handleEditProduct}
-              onDelete={handleDeleteProduct}
+              onToggleStatus={handleToggleProductStatus}
             />
           )}
 
@@ -303,6 +464,25 @@ const Dashboard = ({ user, onLogout }) => {
               products={products}
               onSaleComplete={handleSaleComplete}
             />
+          )}
+
+          {activeView === 'inventory' && (
+            <InventoryManagement
+              products={products}
+              onStockUpdate={handleStockUpdate}
+            />
+          )}
+
+          {activeView === 'alerts' && (
+            <LowStockAlerts products={products} />
+          )}
+
+          {activeView === 'suppliers' && (
+            <SupplierManagement />
+          )}
+
+          {activeView === 'supplier-history' && (
+            <SupplierHistory />
           )}
         </div>
       </main>

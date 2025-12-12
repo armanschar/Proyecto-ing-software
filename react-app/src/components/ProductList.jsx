@@ -1,6 +1,22 @@
+import { useState } from 'react';
 import './ProductList.css';
 
-const ProductList = ({ products, onEdit, onDelete }) => {
+const ProductList = ({ products, onEdit, onToggleStatus }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+
+  // Filtrar productos por búsqueda
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = 
+      product.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.codigo?.includes(searchTerm) ||
+      product.descripcion?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = !filterCategory || product.categoria === filterCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
   if (products.length === 0) {
     return (
       <div className="product-list-container">
@@ -25,7 +41,54 @@ const ProductList = ({ products, onEdit, onDelete }) => {
       <div className="list-header">
         <h2 className="view-title">Lista de Productos</h2>
         <div className="list-stats">
-          Total: {products.length} producto{products.length !== 1 ? 's' : ''}
+          Total: {filteredProducts.length} de {products.length} producto{products.length !== 1 ? 's' : ''}
+        </div>
+      </div>
+
+      {/* Search and Filter Section */}
+      <div className="search-filter-section">
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Buscar por nombre, código o descripción..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          {searchTerm && (
+            <button
+              className="clear-search"
+              onClick={() => setSearchTerm('')}
+              title="Limpiar búsqueda"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          )}
+        </div>
+
+        <div className="filter-category">
+          <label htmlFor="category-filter">Categoría:</label>
+          <select
+            id="category-filter"
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="category-select"
+          >
+            <option value="">Todas las categorías</option>
+            <option value="Alimentos">Alimentos</option>
+            <option value="Bebidas">Bebidas</option>
+            <option value="Lacteos">Lácteos</option>
+            <option value="Limpieza">Limpieza</option>
+            <option value="Higiene">Higiene</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Enlatados">Enlatados</option>
+            <option value="Panaderia">Panadería</option>
+            <option value="Carnes">Carnes</option>
+            <option value="Otros">Otros</option>
+          </select>
         </div>
       </div>
 
@@ -35,6 +98,7 @@ const ProductList = ({ products, onEdit, onDelete }) => {
             <tr>
               <th>Código</th>
               <th>Nombre</th>
+              <th>Categoría</th>
               <th>Descripción</th>
               <th>Costo</th>
               <th>Precio Venta</th>
@@ -44,8 +108,8 @@ const ProductList = ({ products, onEdit, onDelete }) => {
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
-              <tr key={product.id}>
+              {filteredProducts.map((product) => (
+              <tr key={product.id} className={product.id === 'placeholder_product' ? 'placeholder-row' : ''}>
                 <td>{product.codigo}</td>
                 <td>
                   <div className="product-name-cell">
@@ -56,8 +120,18 @@ const ProductList = ({ products, onEdit, onDelete }) => {
                         className="product-table-image"
                       />
                     )}
-                    <span>{product.nombre}</span>
+                    <span>
+                      {product.nombre}
+                      {product.id === 'placeholder_product' && (
+                        <span className="placeholder-badge">Ejemplo</span>
+                      )}
+                    </span>
                   </div>
+                </td>
+                <td>
+                  <span className="category-badge">
+                    {product.categoria || 'Sin categoría'}
+                  </span>
                 </td>
                 <td className="description-cell">
                   {product.descripcion || '-'}
@@ -87,14 +161,22 @@ const ProductList = ({ products, onEdit, onDelete }) => {
                       </svg>
                     </button>
                     <button
-                      className="btn-delete"
-                      onClick={() => onDelete(product.id)}
-                      title="Eliminar"
+                      className={product.estado === 'Activo' ? 'btn-deactivate' : 'btn-activate'}
+                      onClick={() => onToggleStatus(product.id)}
+                      title={product.estado === 'Activo' ? 'Desactivar' : 'Activar'}
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                      </svg>
+                      {product.estado === 'Activo' ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="15" y1="9" x2="9" y2="15"></line>
+                          <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </td>
